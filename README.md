@@ -1,6 +1,12 @@
-# comp472-project2
+https://github.com/nguyenthanhtung2605/comp472-project2
+# Comp472 - Project 2 -  Naive Bayes classiﬁcation
 
-## commands
+## Team ***MeSolo***
+```
+- Thanh Tung Nguyen: 40042891 <Leader>
+```
+
+## To run the program
 
 ### 1. display helps
 To display helps enter
@@ -9,6 +15,9 @@ python bayes.py -h
 ```
 ### 2. run Professor's assigned models
 To run Professor's assigned models
+
+```python3 bayes.py -v <vocabulary_type> -n <ngram_type> -d <smooth_value>```
+
 ```
 python bayes.py -v 0 -n 1 -d 0.1 -r ./OriginalDataSet/test-tweets-given.txt -t ./OriginalDataSet/training-tweets.txt
 python bayes.py -v 0 -n 2 -d 0.2 -r ./OriginalDataSet/test-tweets-given.txt -t ./OriginalDataSet/training-tweets.tx
@@ -28,6 +37,9 @@ python bayes.py -v 0 -n 3 -d 1.0 -r ./OriginalDataSet/test-tweets-given.txt -t .
 
 ### 2. run my own models
 To my own models
+
+```python3 bayes.py -v <vocabulary_type> -n <ngram_type> -d <smooth_value> -f <filter_type>```
+
 ```
 python bayes.py -v 0 -n 4 -d 0.1 -f 0 -r ./OriginalDataSet/test-tweets-given.txt -t ./OriginalDataSet/training-tweets.tx
 python bayes.py -v 0 -n 4 -d 0.1 -f 1 -r ./OriginalDataSet/test-tweets-given.txt -t ./OriginalDataSet/training-tweets.tx
@@ -38,3 +50,6 @@ python bayes.py -v 0 -n 4 -d 0.1 -f 7 -r ./OriginalDataSet/test-tweets-given.txt
 python bayes.py -v 1 -n 4 -d 0.1 -f 7 -r ./OriginalDataSet/test-tweets-given.txt -t ./OriginalDataSet/training-tweets.tx
 python bayes.py -v 2 -n 4 -d 0.1 -f 7 -r ./OriginalDataSet/test-tweets-given.txt -t ./OriginalDataSet/training-tweets.tx
 ```
+
+## Dev envirionment
+MacOS and Pycharm
