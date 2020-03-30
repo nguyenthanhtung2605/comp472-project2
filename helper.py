@@ -1,26 +1,130 @@
+import os
 import re
 import string
 
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def write_to_file(prefix, visited, path):
-    solution_file = open(prefix + "_solution.txt", 'w')
-    search_file = open(prefix + "_search.txt", 'w')
 
-    if len(path) == 0:
-        solution_file.write('no solution')
+def read_tweet(input_file):
+    tweet_list = list()
+
+    with open(input_file, 'r', encoding="utf8") as file:
+        entry_id = 1
+        for each in file:
+            tweet = dict()
+            if each.find('	') > -1:
+                parts = str(each).split('	')
+                tweet['entry_id'] = entry_id
+                tweet['id'] = parts[0]
+                tweet['user'] = parts[1]
+                tweet['language'] = parts[2]
+                tweet['content'] = parts[3].strip()
+                entry_id += 1
+            else:
+                continue
+            tweet_list.append(tweet)
+
+    return tweet_list
+
+
+def filter_tweet(tweet, filter_type=0):
+    url_pattern = r"http\S+"
+    attag_pattern = r"@\S+"
+    hashtag_pattern = r"#\S+"
+
+    if filter_type == 0:
+        return tweet
+    elif filter_type == 1:
+        return re.sub(url_pattern, "", tweet)
+    elif filter_type == 2:
+        return re.sub(attag_pattern, "", tweet)
+    elif filter_type == 3:
+        return re.sub(hashtag_pattern, "", tweet)
+    elif filter_type == 4:
+        combined_pat = r'|'.join((url_pattern, attag_pattern))
+        return re.sub(combined_pat, "", tweet)
+    elif filter_type == 5:
+        combined_pat = r'|'.join((url_pattern, hashtag_pattern))
+        return re.sub(combined_pat, "", tweet)
+    elif filter_type == 6:
+        combined_pat = r'|'.join((attag_pattern, hashtag_pattern))
+        return re.sub(combined_pat, "", tweet)
     else:
-        for step in path:
-            solution_file.write(step + '\n')
-
-    solution_file.close()
-
-    for step in visited:
-        search_file.write(step + '\n')
-
-    search_file.close()
+        combined_pat = r'|'.join((url_pattern, attag_pattern, hashtag_pattern))
+        return re.sub(combined_pat, "", tweet)
 
 
+def write_to_file(test_data, vocabulary_type, ngram_type, smooth_value, filter_type=0, prefix: str = 'trace'):
+    data_folder = os.path.join(ROOT_DIR, 'ResultFiles')
 
+    # filelist = [f for f in os.listdir(data_folder) if f.endswith(".txt")]
+    # for f in filelist:
+    #     os.remove(os.path.join(data_folder, f))
+
+    if filter_type == 0 and ngram_type != 4:
+        trace_file_path = os.path.join(data_folder,
+                                       '{}_{}_{}_{}.txt'.format(prefix, vocabulary_type, ngram_type, smooth_value))
+        evaluation_file_path = os.path.join(data_folder,
+                                            'eval_{}_{}_{}.txt'.format(vocabulary_type, ngram_type, smooth_value))
+    else:
+        trace_file_path = os.path.join(data_folder,
+                                       'myModel_{}_{}_{}_{}_filter{}.txt'.format(prefix, vocabulary_type,
+                                                                                 ngram_type, smooth_value, filter_type))
+        evaluation_file_path = os.path.join(data_folder, 'eval_myModel_{}_{}_{}_filter{}.txt'.format(vocabulary_type,
+                                                                                                     ngram_type,
+                                                                                                     smooth_value,
+                                                                                                     filter_type))
+    print('\n=============== Testing Resutls ===============')
+    with open(trace_file_path, 'w', encoding="utf8") as trace_file:
+        for tweet in test_data.tweets_to_predict:
+            line = '{}  {}  {}  {}  {}'.format(tweet.id, tweet.language, tweet.prediction_score,
+                                               tweet.predicted_language,
+                                               tweet.prediction_result.name)
+            print(line)
+            trace_file.write(line + '\n')
+
+    print('\n=============== Testing Evaluation ===============')
+    with open(evaluation_file_path, 'w') as evaluation_file:
+
+        eu_P = test_data.per_class_precision['eu']
+        ca_P = test_data.per_class_precision['ca']
+        gl_P = test_data.per_class_precision['gl']
+        es_P = test_data.per_class_precision['es']
+        en_P = test_data.per_class_precision['en']
+        pt_P = test_data.per_class_precision['pt']
+
+        eu_R = test_data.per_class_recall['eu']
+        ca_R = test_data.per_class_recall['ca']
+        gl_R = test_data.per_class_recall['gl']
+        es_R = test_data.per_class_recall['es']
+        en_R = test_data.per_class_recall['en']
+        pt_R = test_data.per_class_recall['pt']
+
+        eu_F = test_data.per_class_f1_measure['eu']
+        ca_F = test_data.per_class_f1_measure['ca']
+        gl_F = test_data.per_class_f1_measure['gl']
+        es_F = test_data.per_class_f1_measure['es']
+        en_F = test_data.per_class_f1_measure['en']
+        pt_F = test_data.per_class_f1_measure['pt']
+
+        line_accuracy = '{:.4f}'.format(test_data.accuracy_value)
+        line_cls_precision = '{:.4f}  {:.4f}  {:.4f}  {:.4f}  {:.4f}  {:.4f}'.format(eu_P, ca_P, gl_P, es_P, en_P, pt_P)
+        line_cls_recall = '{:.4f}  {:.4f}  {:.4f}  {:.4f}  {:.4f}  {:.4f}'.format(eu_R, ca_R, gl_R, es_R, en_R, pt_R)
+        line_cls_f1_ms = '{:.4f}  {:.4f}  {:.4f}  {:.4f}  {:.4f}  {:.4f}'.format(eu_F, ca_F, gl_F, es_F, en_F, pt_F)
+        line_macro_and_weighed_average_f1 = '{:.4f}  {:.4f}'.format(test_data.macro_f1_value,
+                                                                    test_data.weighed_average_f1)
+
+        print(line_accuracy)
+        print(line_cls_precision)
+        print(line_cls_recall)
+        print(line_cls_f1_ms)
+        print(line_macro_and_weighed_average_f1)
+
+        evaluation_file.write(line_accuracy + '\n')
+        evaluation_file.write(line_cls_precision + '\n')
+        evaluation_file.write(line_cls_recall + '\n')
+        evaluation_file.write(line_cls_f1_ms + '\n')
+        evaluation_file.write(line_macro_and_weighed_average_f1 + '\n')
 
 
 def display_helps():
@@ -28,10 +132,10 @@ def display_helps():
           '<training_filepath> -t <testing file_path>')
 
     vocab_text = '''
-(-V) : Vocabulary
+(-v) : Vocabulary
 The program works at the character level (or words) and accounts for 3 types of vocabulary:
 ----------------
-V : Significance
+v : Significance
 ----------------
 0 : Fold the corpus to lowercase and use only the 26 letters of the alphabet [a-z]
 1 : Distinguish up and low cases and use only the 26 letters of the alphabet [a-z, A-Z]
@@ -76,18 +180,6 @@ f : Significance
     print(noise_filtering)
 
 
-def filter_lower_only(tweet_content):
-    return re.findall(r"[a-z]", tweet_content)
-
-
-def filter_upper_lower(tweet_content):
-    return re.findall(r"[a-z]|[A-Z]", tweet_content)
-
-
-def filter_isalpha(tweet_content):
-    return [x for x in tweet_content if str(x).isalpha()]
-
-
 def tokenize_tweet(tweet_content):
     # remove URL links and @tag from Twitter tweet
     url_pattern = r"http\S+"
@@ -112,24 +204,5 @@ def tokenize_tweet(tweet_content):
     return tokens
 
 
-
 if __name__ == '__main__':
-    '''
-    tweet_filepath = 'OriginalDataSet/test-tweets-given.txt'
-    tweet_list = read_tweet(tweet_filepath)
-
-    for each in tweet_list:
-        print(each)
-    '''
-    tweet_content = "http://t.co/jeDRtziT3S El amor se hizo para tener un motivo por el cual hacer muchísimas cosas deliciosas y absurdamente placenteras y decir que fue por amor. Seré @jordisunyer per carnaval tot s'hi val. #carnavalpda"
-
-    # tokenize_tweet(tweet_content)
-    #
-    # tweet2 = "Seré un analfabeto musical, pero Paco de Lucía era tan bueno? 😕"
-    # for letter in tweet2:
-    #     print(letter + ':' + str(letter.isalpha()))
-
-    filtering_pattern = r"[a-z]|[A-Z]"
-    password = "SeréFa11con77YES"
-    text = filter_upper_lower(password)
-    print(text)
+    print('This is Help File')
