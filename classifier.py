@@ -1,3 +1,4 @@
+import math
 import operator
 from math import log
 
@@ -105,11 +106,14 @@ class TestingClassifier:
 
     def get_word_likelihood(self, word: str, classname: str):
         if word in self.trained_data.lang_classes[classname].indexer:
-            word_predictor_value = self.trained_data.lang_classes[classname].indexer[word]
+            word_predictor_value = self.trained_data.lang_classes[classname].indexer[word] + self.trained_data.smooth_value
         else:
             word_predictor_value = self.trained_data.smooth_value
         class_num_of_words = self.trained_data.lang_classes[classname].total_word + self.vocab_size
-        likelihood = log(word_predictor_value / class_num_of_words, 10)
+        if self.trained_data.smooth_value == 0:
+            likelihood = -math.inf
+        else:
+            likelihood = log(word_predictor_value / class_num_of_words, 10)
         return likelihood
 
     def predict_tweet_language(self, tweet_instance: Tweet):

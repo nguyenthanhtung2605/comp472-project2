@@ -55,7 +55,7 @@ def filter_tweet(tweet, filter_type=0):
 
 
 def write_to_file(test_data, vocabulary_type, ngram_type, smooth_value, filter_type=0, prefix: str = 'trace'):
-    data_folder = os.path.join(ROOT_DIR, 'ResultFiles')
+    data_folder = os.path.join(ROOT_DIR, 'TraceFiles')
 
     # filelist = [f for f in os.listdir(data_folder) if f.endswith(".txt")]
     # for f in filelist:
